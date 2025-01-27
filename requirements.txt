@@ -187,7 +187,6 @@ wcwidth==0.2.6
 Werkzeug==2.3.4
 wrapt==1.15.0
 xmlschema==2.3.0
-xterm==0.7.3
 yarl==1.9.2
 yattag==1.15.1
 zipp==3.15.0
