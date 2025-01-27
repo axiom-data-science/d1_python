@@ -98,11 +98,11 @@ MAX_SLICE_ITEMS = 5000
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "gmn_test_db_template",
-        "USER": "",
-        "PASSWORD": "",
-        "HOST": "",
-        "PORT": "",
+        "NAME": os.environ.get("TEST_SETTING_DB_NAME", "test_gmn"),
+        "USER": os.environ.get("TEST_SETTING_DB_USER", "postgres"),
+        "PASSWORD": os.environ.get("TEST_SETTING_DB_PW", ""),
+        "HOST": os.environ.get("TEST_SETTING_DB_HOST", "db"),
+        "PORT": os.environ.get("TEST_SETTING_DB_PORT", "5432"),
         "ATOMIC_REQUESTS": False,
         "AUTOCOMMIT": False,
     }

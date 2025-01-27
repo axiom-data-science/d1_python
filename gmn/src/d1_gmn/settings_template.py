@@ -20,7 +20,10 @@
 # noinspection PyUnresolvedReferences
 # flake8: noqa: F403,F401
 
+import json
 import d1_common.const
+import d1_common.util
+
 
 # import logging
 # import d1_common.const
@@ -125,15 +128,7 @@ TRUST_CLIENT_DATEUPLOADED = False
 
 # Hosts/domain names that are valid for this site.
 # Ignored if DEBUG is True. Required if DEBUG is False.
-ALLOWED_HOSTS = [
-    # Allow local connections
-    "localhost",
-    "127.0.0.1",
-    # Add FQDN to allow external clients to access GMN
-    #'my.server.name.com',
-    # Add to allow external clients to access GMN by IP address
-    #'my.external.ip.address',
-]
+ALLOWED_HOSTS = json.loads(os.environ.get('ALLOWED_HOSTS', '["*"]'))
 
 # ==============================================================================
 # Node parameters
@@ -523,10 +518,11 @@ d1_common.util.nested_update(
     DATABASES,
     {
         "default": {
-            # The database in tables required by GMN are stored. The database itself
-            # is typically owned by the postgres user while the tables are owned by the
-            # GMN user.
-            "NAME": "gmn3"
+            "NAME": os.environ.get("PROD_SETTING_DB_NAME", "gmn3"),
+            "USER": os.environ.get("PROD_SETTING_DB_USER", "gmn"),
+            "PASSWORD": os.environ.get("PROD_SETTING_DB_PW", ""),
+            "HOST": os.environ.get("PROD_SETTING_DB_HOST", "db"),
+            "PORT": os.environ.get("PROD_SETTING_DB_PORT", "5432"),
         }
     },
 )
