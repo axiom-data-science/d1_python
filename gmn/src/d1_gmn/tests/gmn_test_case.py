@@ -143,7 +143,14 @@ def postgres_db_exists(db_name):
 
 def run_postgres_sql(db, sql):
     try:
-        conn = psycopg2.connect(database=db)
+        db_info = django.conf.settings.DATABASES['default']
+        conn = psycopg2.connect(
+            dbname=db_info['USER'],
+            user=db_info['USER'],
+            host=db_info['HOST'],
+            password=db_info['PASSWORD'],
+            port=db_info['PORT']
+        )
         conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()
         cur.execute(sql)
