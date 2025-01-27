@@ -181,7 +181,7 @@ def django_save_db_fixture(db_key=DEFAULT_DB_KEY):
         stdout=buf,
     )
     with bz2.BZ2File(
-        fixture_file_path, "w", buffering=1024 ** 2, compresslevel=9
+        fixture_file_path, "w", compresslevel=9
     ) as bz2_file:
         bz2_file.write(buf.getvalue().encode("utf-8"))
 
