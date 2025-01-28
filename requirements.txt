@@ -75,7 +75,7 @@ itsdangerous==2.1.2
 jedi==0.18.2
 Jinja2==3.1.2
 joblib==1.2.0
-kaptan==0.5.12
+kaptan==0.6.0
 lazy==1.5
 libcst==0.4.10
 lxml==4.9.2
@@ -137,7 +137,7 @@ python-xlib==0.33
 pytz==2023.3
 PyXB-X==1.2.6.1
 pyxdg==0.28
-PyYAML==5.4.1
+PyYAML==6.0.1
 pyzotero==1.5.9
 rdflib==6.3.2
 readchar==4.0.5
