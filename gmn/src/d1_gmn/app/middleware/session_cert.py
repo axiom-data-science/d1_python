@@ -1,3 +1,5 @@
+
+
 # This work was created by participants in the DataONE project, and is
 # jointly copyrighted by participating institutions in DataONE. For
 # more information on DataONE, see our web site at http://dataone.org.
@@ -34,6 +36,55 @@ import d1_common.cert.subjects
 import d1_common.const
 import d1_common.types.exceptions
 
+from urllib.parse import unquote
+
+
+# The WSGI/environment made available via Apache's SSLOptions +ExportCertData
+#
+# Example Apache config fragement:
+#
+#   <Files "wsgi.py">
+#       SSLOptions +ExportCertData
+#   </Files>
+SSL_CLIENT_CERT='SSL_CLIENT_CERT'
+
+# The HTTP header made available via nginx (X-SSL-Client-Cert)
+#
+# Example nginx config fragement, using proxy_pass reverse proxy to a gunicorn
+# wsgi wrapper, and passing the X-SSL-Client-Cert HTTP header with the escaped
+# contents of the client cert
+#
+#   location /mn/ {
+#       proxy_pass          http://django_gunicorn:8000/;
+#       proxy_set_header    X-Real-IP $remote_addr;
+#       proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+#       proxy_set_header    Host    $host;
+#       proxy_set_header    X-Forwarded-Proto   $scheme;
+#       proxy_set_header    X-SSL-Client-Cert $ssl_client_escaped_cert;
+#       proxy_redirect  off;
+#       # proxy_ssl_server_name on;
+#   }
+#
+HTTP_X_SSL_CLIENT_CERT='HTTP_X_SSL_CLIENT_CERT'
+
+SSL_CLIENT_CERT_META_KEYS=(
+    SSL_CLIENT_CERT,
+    HTTP_X_SSL_CLIENT_CERT,
+)
+
+def _which_ssl_client_cert_meta( request_meta ):
+    """Attempt a few known keys in request.META known to be available via """
+    """Apache, nginx (and other) HTTP/WSGI frontends."""
+
+    assert isinstance( request_meta, dict )
+
+    for k in SSL_CLIENT_CERT_META_KEYS:
+
+        if k in request_meta:
+            return k
+
+    return None
+
 
 def get_subjects(request):
     """Get all subjects in the certificate.
@@ -46,7 +97,13 @@ def get_subjects(request):
     """
     if _is_certificate_provided(request):
         try:
-            return get_authenticated_subjects(request.META["SSL_CLIENT_CERT"])
+            k = _which_ssl_client_cert_meta( request.META )
+            if k is None:
+                raise Exception(
+                    'No known client SSL cert key present in request.META: '
+                    f'{",".SSL_CLIENT_CERT_META_KEYS}'
+                )
+            return get_authenticated_subjects(request.META[k])
         except Exception as e:
             raise d1_common.types.exceptions.InvalidToken(
                 0,
@@ -63,9 +120,22 @@ def get_authenticated_subjects(cert_pem):
 
     """
     if isinstance(cert_pem, str):
+
+        if '%20' in cert_pem:
+            # This cert is likely '%xx' encoded, and needs to be unquoted in
+            # order to be able to extract the subject.
+            cert_pem = unquote( cert_pem )
+
         cert_pem = cert_pem.encode("utf-8")
+
     return d1_common.cert.subjects.extract_subjects(cert_pem)
 
 
 def _is_certificate_provided(request):
-    return "SSL_CLIENT_CERT" in request.META and request.META["SSL_CLIENT_CERT"] != ""
+
+    k = _which_ssl_client_cert_meta( request.META )
+
+    if k is None:
+        return False
+
+    return k in request.META and request.META[k] != ""
